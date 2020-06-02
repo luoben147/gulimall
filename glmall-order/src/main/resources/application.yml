@@ -1,0 +1,15 @@
+server:
+  port: 9000
+spring:
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://192.168.2.110:3306/glmall_oms?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#配置mybatisplus
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  global-config:
+    db-config:
+      #主键类型 AUTO:"数据库ID自增", INPUT:"用户输入ID",ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
+      id-type: auto
