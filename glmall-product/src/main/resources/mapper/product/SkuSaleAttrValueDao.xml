@@ -13,5 +13,31 @@
         <result property="attrSort" column="attr_sort"/>
     </resultMap>
 
+    <resultMap id="skuItemSaleAttrVo" type="com.luoben.glmall.product.vo.SkuItemSaleAttrVo">
+        <result property="attrId" column="attr_id"></result>
+        <result property="attrName" column="attr_name"></result>
+       <collection property="attrValues" ofType="com.luoben.glmall.product.vo.AttrValueWithSkuIdVo">
+           <result property="attrValue" column="attr_value"></result>
+           <result property="skuIds" column="sku_ids"></result>
+       </collection>
+    </resultMap>
+
+    <select id="getSaleAttrsBySpuId" resultMap="skuItemSaleAttrVo">
+        select b.attr_id as  attr_id,
+               b.attr_name as attr_name,
+               b.attr_value as attr_value,
+               GROUP_CONCAT(DISTINCT a.sku_id) as sku_ids
+        from pms_sku_info as a
+        left join pms_sku_sale_attr_value as b on b.sku_id=a.sku_id
+        where a.spu_id=#{spuId}
+        GROUP BY b.attr_id,b.attr_name,b.attr_value
+    </select>
+
+    <select id="getSkuSaleAttrValuesAsStringList" resultType="java.lang.String">
+        SELECT CONCAT(attr_name,attr_value)
+        FROM `pms_sku_sale_attr_value`
+        WHERE sku_id=#{skuId}
+    </select>
+
 
 </mapper>

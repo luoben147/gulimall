@@ -1,19 +1,15 @@
 package com.luoben.glmall.ware.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.luoben.glmall.ware.entity.WareInfoEntity;
-import com.luoben.glmall.ware.service.WareInfoService;
 import com.luoben.common.utils.PageUtils;
 import com.luoben.common.utils.R;
+import com.luoben.glmall.ware.entity.WareInfoEntity;
+import com.luoben.glmall.ware.service.WareInfoService;
+import com.luoben.glmall.ware.vo.FareVo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.Map;
 
 
 
@@ -29,6 +25,17 @@ import com.luoben.common.utils.R;
 public class WareInfoController {
     @Autowired
     private WareInfoService wareInfoService;
+
+    /**
+     * 获取运费信息
+     * @return
+     */
+    @GetMapping("/fare")
+    public R getFare(@RequestParam("addrId") Long addrId){
+        FareVo fare= wareInfoService.getFare(addrId);
+        return R.ok().setData(fare);
+    }
+
 
     /**
      * 列表

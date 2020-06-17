@@ -1,0 +1,16 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+  application:
+    name: glmall-search
+  thymeleaf:
+    cache: false
+  redis:
+    host: 192.168.2.110
+    port: 6379
+  session:
+    store-type: redis
+server:
+  port: 12000

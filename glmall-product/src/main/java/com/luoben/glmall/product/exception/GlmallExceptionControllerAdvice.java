@@ -15,7 +15,7 @@ import java.util.Map;
  * 集中处理异常
  */
 @Slf4j
-@RestControllerAdvice(basePackages = "com.luoben.glmall.product.controller")
+@RestControllerAdvice(basePackages = "com.luoben.glmall.product.app")
 public class GlmallExceptionControllerAdvice {
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)

@@ -3,6 +3,7 @@ package com.luoben.glmall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.luoben.common.utils.PageUtils;
 import com.luoben.glmall.product.entity.CategoryEntity;
+import com.luoben.glmall.product.vo.Catelog2VO;
 
 import java.util.List;
 import java.util.Map;
@@ -31,5 +32,13 @@ public interface CategoryService extends IService<CategoryEntity> {
     Long[] findCatelogPath(Long catelogId);
 
     void updateCascade(CategoryEntity category);
+
+    /**
+     * 查询所有一级分类
+     * @return
+     */
+    List<CategoryEntity> getLevelOneCategorys();
+
+    Map<String, List<Catelog2VO>> getCatelogJson();
 }
 

@@ -1,6 +1,10 @@
 spring:
   cloud:
     gateway:
+#      discovery:
+#        locator:
+#          #启用了自动根据服务ID建立路由
+#          enabled: true
       routes:
 #      - id: test_route
 #        uri: https://www.baidu.com
@@ -14,7 +18,7 @@ spring:
        - id: product_route
          uri: lb://glmall-product
          predicates:
-           - Path=/api/product/**
+           - Path=/api/product/**,/hello
          filters:
            #重写路径 此工厂将/api/(?.*)重写为{segment}  去掉/api
            - RewritePath=/api/(?<segment>/?.*),/$\{segment}
@@ -46,11 +50,32 @@ spring:
            - Path=/api/**
          filters:
            - RewritePath=/api(?<segment>/?.*), /renren-fast/$\{segment}
-      discovery:
-        locator:
-          #启用了自动根据服务ID建立路由
-          enabled: true
 
+       #配置网关  **.glmall.com 的请求转发到glmall-product服务处理
+       - id: glmall_host_route
+         uri: lb://glmall-product
+         predicates:
+           - Host=glmall.com,item.glmall.com
+
+       - id: glmall_search_route
+         uri: lb://glmall-search
+         predicates:
+           - Host=search.glmall.com
+
+       - id: glmall_auth_route
+         uri: lb://glmall-auth-server
+         predicates:
+           - Host=auth.glmall.com
+
+       - id: glmall_cart_route
+         uri: lb://glmall-cart
+         predicates:
+           - Host=cart.glmall.com
+
+       - id: glmall_order_route
+         uri: lb://glmall-order
+         predicates:
+           - Host=order.glmall.com
 
 ## 前端项目，/api
 ## http://localhost:88/api/captcha.jpg   http://localhost:8080/renren-fast/captcha.jpg

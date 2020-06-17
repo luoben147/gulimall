@@ -2,7 +2,10 @@ package com.luoben.glmall.product.dao;
 
 import com.luoben.glmall.product.entity.SkuSaleAttrValueEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.luoben.glmall.product.vo.SkuItemSaleAttrVo;
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
 
 /**
  * sku销售属性&值
@@ -13,5 +16,13 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface SkuSaleAttrValueDao extends BaseMapper<SkuSaleAttrValueEntity> {
-	
+
+    /**
+     * spu 销售属性所有组合
+     * @param spuId
+     * @return
+     */
+    List<SkuItemSaleAttrVo> getSaleAttrsBySpuId(Long spuId);
+
+    List<String> getSkuSaleAttrValuesAsStringList(Long skuId);
 }

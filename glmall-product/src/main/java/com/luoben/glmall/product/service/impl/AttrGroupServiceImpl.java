@@ -14,6 +14,8 @@ import com.luoben.glmall.product.service.AttrGroupService;
 import com.luoben.glmall.product.service.AttrService;
 import com.luoben.glmall.product.vo.AttrGroupRelationVo;
 import com.luoben.glmall.product.vo.AttrGroupWithAttrsVo;
+import com.luoben.glmall.product.vo.SkuItemVo;
+import com.luoben.glmall.product.vo.SpuItemAttrGroupVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -104,5 +106,19 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
         }).collect(Collectors.toList());
 
         return collect;
+    }
+
+    /**
+     * spu 对应的 所有分组信息及其下的属性信息
+     * @param spuId
+     * @param catalogId
+     * @return
+     */
+    @Override
+    public List<SpuItemAttrGroupVo> getAttrGroupWithAttrsBySpuId(Long spuId, Long catalogId) {
+
+        List<SpuItemAttrGroupVo> vos= this.baseMapper.getAttrGroupWithAttrsBySpuId(spuId,catalogId);
+
+        return vos;
     }
 }

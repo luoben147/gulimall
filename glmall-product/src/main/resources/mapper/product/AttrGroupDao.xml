@@ -13,5 +13,31 @@
         <result property="catelogId" column="catelog_id"/>
     </resultMap>
 
+    <!--只要有嵌套属性，就要封装自定义结果集-->
+    <resultMap id="spuItemAttrGroupVo" type="com.luoben.glmall.product.vo.SpuItemAttrGroupVo">
+            <result property="groupName" column="attr_group_name"></result>
+            <collection property="attrs" ofType="com.luoben.glmall.product.vo.Attr">
+                <result property="attrName" column="attr_name"></result>
+                <result property="attrValue" column="attr_value"></result>
+            </collection>
+    </resultMap>
+    
+
+    <select id="getAttrGroupWithAttrsBySpuId" resultMap="spuItemAttrGroupVo">
+
+        SELECT
+            d.spu_id,
+            a.attr_group_id,
+            a.attr_group_name,
+            b.attr_id,
+            cc.attr_name,
+            d.attr_value
+        FROM `pms_attr_group` AS a
+        LEFT JOIN `pms_attr_attrgroup_relation` AS b ON b.attr_group_id=a.attr_group_id
+        LEFT JOIN `pms_attr` AS cc ON cc.attr_id=b.attr_id
+        LEFT JOIN `pms_product_attr_value` AS d ON d.attr_id=cc.attr_id
+        WHERE a.catelog_id=#{catalogId} AND d.spu_id=#{spuId}
+
+    </select>
 
 </mapper>

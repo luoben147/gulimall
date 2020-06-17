@@ -1,16 +1,16 @@
 package com.luoben.glmall.member.service.impl;
 
-import org.springframework.stereotype.Service;
-import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.luoben.common.utils.PageUtils;
 import com.luoben.common.utils.Query;
-
 import com.luoben.glmall.member.dao.MemberLevelDao;
 import com.luoben.glmall.member.entity.MemberLevelEntity;
 import com.luoben.glmall.member.service.MemberLevelService;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 
 @Service("memberLevelService")
@@ -24,6 +24,15 @@ public class MemberLevelServiceImpl extends ServiceImpl<MemberLevelDao, MemberLe
         );
 
         return new PageUtils(page);
+    }
+
+    /**
+     * 获取默认的会员等级
+     * @return
+     */
+    @Override
+    public MemberLevelEntity getDefaultLevel() {
+        return baseMapper.getDefaultLevel();
     }
 
 }

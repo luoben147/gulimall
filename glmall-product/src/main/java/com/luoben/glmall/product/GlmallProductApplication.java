@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 /**
  * 1、整合MyBatis-Plus
@@ -53,7 +54,47 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * @ControllerAdvice
  *  1）、编写异常处理类，使用@ControllerAdvice。
  *  2）、使用@ExceptionHandler标注方法可以处理的异常。
+ *
+ * 5、nginx动静分离
+ *     静态资源放在nginx的html下的static文件夹下
+ *     页面放在各微服务的templates文件夹下
+ *
+ * 6 、整合redis 缓存数据
+ *     引入data-redis-starter
+ *     yml配置host等信息
+ *     Springboot自动配置好的StringRedisTemplate 操作redis
+ *
+ * 7、整合redisson 分布式锁
+ * 8、整合SpringCache 简化缓存开发
+ *      spring-boot-starter-cache,spring-boot-starter-data-redis
+ *      自动配置：RedisCacheConfiguration
+ *      2.使用spring.cache.type=redis 配置redis作为缓存
+ *      @Cacheable      : 触发将数据保存到缓存的操作
+ *      @CacheEvict     : 触发将数据从缓存删除
+ *      @CachePut       ：不影响方法执行更新缓存
+ *      @Caching        : 组合以上多个操作
+ *      @CacheConfig    : 在类级别共享缓存的配置
+ *
+ *      3.开启缓存 @EnableCaching
+ *      4.Spring-Cache不足：
+ *         1）、读模式：
+ *             缓存穿透：查询一个null数据。解决：缓存空数据 spring.cache.redis.cache-null-values: true
+ *             缓存击穿：大量并发进来同时查询一个正好过期的数据。解决：加锁; ？ 默认没有加锁 @Cacheable(sync = true) 加本地锁解决缓存击穿
+ *             缓存雪崩：大量的key同时过期。解决：加随机时间。加上过期时间。 spring.cache.redis.time-to-live=3600s
+ *         2）、写模式（缓存与数据库一致）
+ *              1）、读写加锁
+ *              2）、引入Canal,感知mysql的更新去更新数据库
+ *              3）、读多写多，直接去查数据库
+ *       总结：
+ *          常规数据：（读多写少，即时性，一致性要求不高的数据），完全可以使用Spring-Cache
+ *                  写模式（只要缓存的数据有过期时间就足够了）
+ *          特殊数据：特殊设计
+ *      原理：
+ *          CacheManager(RedisCacheManager)->Cache(RedisCache)->Cache负责缓存读写
+ *
  */
+
+@EnableRedisHttpSession
 @EnableFeignClients(basePackages = "com.luoben.glmall.product.feign")
 @EnableDiscoveryClient
 @MapperScan("com.luoben.glmall.product.dao")

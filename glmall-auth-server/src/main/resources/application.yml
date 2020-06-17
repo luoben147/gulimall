@@ -1,0 +1,23 @@
+
+server:
+  port: 20000
+  servlet:
+    #session 过期时间 30分钟
+    session:
+      timeout: 30m
+spring:
+  application:
+    name: glmall-auth-server
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+  thymeleaf:
+    cache: false
+  redis:
+    host: 192.168.2.110
+    port: 6379
+  session:
+    #session存储类型： redis
+    store-type: redis
+

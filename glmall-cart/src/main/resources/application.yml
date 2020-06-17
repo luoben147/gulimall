@@ -1,0 +1,20 @@
+server:
+  port: 30000
+spring:
+  application:
+    name: glmall-cart
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+  redis:
+    host: 192.168.2.110
+    port: 6379
+
+
+#\u7EBF\u7A0B\u6C60\u81EA\u5B9A\u4E49\u914D\u7F6E
+glmall:
+  thread:
+    core-size: 20
+    max-size: 200
+    keep-alive-time: 10

@@ -8,8 +8,17 @@ spring:
     alicloud:
         access-key: your access-key
         secret-key: your secret-key
+        #阿里云对象存储
         oss:
-            endpoint: oss-cn-beijing.aliyuncs.com
-            bucket: your bucket
+          endpoint: oss-cn-beijing.aliyuncs.com
+          bucket: your bucket
+        #阿里云第三方的短信服务
+        sms:
+          host: https://fesms.market.alicloudapi.com
+          path: /sms/
+          skin: 1
+          sign: 1
+          appcode: your AppCode
+
   application:
     name: glmall-third-party

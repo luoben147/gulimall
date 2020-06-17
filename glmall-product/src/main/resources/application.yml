@@ -13,6 +13,25 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+  thymeleaf:
+    #缓存
+    cache: false
+  #SpingCache 使用redis缓存
+  cache:
+    type: redis
+    redis:
+      #缓存超时时间
+      time-to-live: 3600s
+      #key-prefix: CACHE_
+      #默认使用分区名作为key前缀
+      use-key-prefix: true
+      #是否缓存空值
+      cache-null-values: true
+  redis:
+    host: 192.168.2.110
+    port: 6379
+  session:
+    store-type: redis
 
 #配置mybatisplus
 mybatis-plus:
@@ -27,3 +46,12 @@ mybatis-plus:
 logging:
   level:
     com.luoben.glmall: debug
+
+#线程池自定义配置
+glmall:
+  thread:
+    core-size: 20
+    max-size: 200
+    keep-alive-time: 10
+
+
