@@ -1,0 +1,132 @@
+docker安装mysql
+
+docker pull mysql:5.7
+sudo docker run -p 3306:3306 --name mysql \
+-v /mydata/mysql/log:/var/log/mysql \
+-v /mydata/mysql/data:/var/lib/mysql \
+-v /mydata/mysql/conf:/etc/mysql \
+-e MYSQL_ROOT_PASSWORD=root \
+-d mysql:5.7
+
+修改配置
+vi my.cnf
+
+[client]
+default-character-set=utf8
+[mysql]
+default-character-set=utf8
+[mysqld]
+init_connect='SET collation_connection = utf8_unicode_ci'
+init_connect='SET NAMES utf8'
+character-set-server=utf8
+collation-server=utf8_unicode_ci
+skip-character-set-client-handshake
+skip-name-resolve
+
+
+设置启动docker时，即运行mysql
+docker update mysql --restart=always
+
+============================================================
+docker安装redis
+
+docker pull redis
+
+mkdir -p /mydata/redis/conf
+touch /mydata/redis/conf/redis.conf
+
+docker run -p 6379:6379 --name redis -v /mydata/redis/data:/data \
+> -v /mydata/redis/conf/redis.conf:/etc/redis/redis.conf \
+> -d redis redis-server /etc/redis/redis.conf
+
+============================================================
+docker安装nginx
+1.直接执行以下命令会自动下载nginx 目的只是为了得到nginx中的配置文件
+docker run -p 80:80 --name nginx  -d nginx:1.10
+
+2.将容器内的配置文件拷贝到当前目录
+docker container cp nginx:/etc/nginx .
+
+3.停止并删除nginx容器
+docker stop nginx
+docker rm nginx
+
+4.更改目录
+cd /mydata
+mv nginx conf
+mkdir nginx
+mv conf/ nginx/
+
+5.运行自己需要的nginx
+docker run -p 80:80 --name nginx \
+-v /mydata/nginx/html:/usr/share/nginx/html \
+-v /mydata/nginx/logs:/var/log/nginx \
+-v /mydata/nginx/conf:/etc/nginx \
+-d nginx:1.10
+
+============================================================
+docker安装elasticsearch
+
+1.docker安装elasticsearch
+docker pull elasticsearch:7.4.2
+
+2.安装kibana
+docker pull kibana:7.4.2
+
+3.创建目录
+mkdir -p /mydata/elasticsearch/config
+mkdir -p /mydata/elasticsearch/data
+echo " http.host: 0.0.0.0" >> /mydata/elasticsearch/config/elasticsearch.yml
+注意： 0.0.0.0之前有一个空格
+chmod 777 /mydata/elasticsearch/config
+chmod 777 /mydata/elasticsearch/data
+
+4.运行elasticsearch
+docker run --name elasticsearch -p 9200:9200 -p 9300:9300 \
+-e "discovery.type=single-node" \
+-e ES_JAVA_OPTS="-Xms64m -Xmx512m" \
+-v /mydata/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml \
+-v /mydata/elasticsearch/data:/usr/share/elasticsearch/data \
+-v /mydata/elasticsearch/plugins:/usr/share/elasticsearch/plugins \
+-d elasticsearch:7.4.2
+
+5.运行kibana
+docker run --name kibana -e ELASTICSEARCH_HOSTS=http://192.168.2.110:9200 -p 5601:5601 \
+-d kibana:7.4.2
+
+
+6.分词器
+下下载对应版本IK并解压上传到虚拟机映射目录即安装成功
+
+nginx中配置远程词库
+mkdir /mydata/nginx/html/es
+cd /mydata/nginx/html/es/
+
+vi fenci.txt
+随便填吧
+乔碧萝
+
+
+修改ik分词器配置
+cd /mydata/elasticsearch/plugins/elasticsearch-analysis-ik-7.4.2/config/
+vi IKAnalyzer.cfg.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>IK Analyzer 扩展配置</comment>
+    <!--用户可以在这里配置自己的扩展字典 -->
+    <entry key="ext_dict"></entry>
+    <!--用户可以在这里配置自己的扩展停止词字典-->
+    <entry key="ext_stopwords"></entry>
+    <!--用户可以在这里配置远程扩展字典-->
+    <entry key="remote_ext_dict">http://192.168.2.110/es/fenci.txt</entry>
+</properties>
+
+
+==================================================================
+docker安装rabbitmq
+
+docker run -d --name rabbitmq -p 5671:5671 -p 5672:5672 -p 4369:4369 -p 25672:25672 -p 15671:15671 -p 15672:15672 rabbitmq:management
+
+
