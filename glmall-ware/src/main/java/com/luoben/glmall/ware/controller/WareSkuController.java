@@ -1,10 +1,13 @@
 package com.luoben.glmall.ware.controller;
 
+import com.luoben.common.exception.BizCodeEnume;
+import com.luoben.common.exception.NoStockException;
 import com.luoben.common.utils.PageUtils;
 import com.luoben.common.utils.R;
 import com.luoben.glmall.ware.entity.WareSkuEntity;
 import com.luoben.glmall.ware.service.WareSkuService;
 import com.luoben.glmall.ware.vo.SkuHasStockVo;
+import com.luoben.glmall.ware.vo.WareSkuLockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +28,23 @@ import java.util.Map;
 public class WareSkuController {
     @Autowired
     private WareSkuService wareSkuService;
+
+
+    /**
+     * 订单锁定商品库存
+     * @return
+     */
+    @PostMapping("/lock/order")
+    public R orderLockStock(@RequestBody WareSkuLockVo lockVo){
+        try {
+            Boolean  lockStock = wareSkuService.orderLockStock(lockVo);
+            return R.ok();
+        } catch (NoStockException e) {
+            e.printStackTrace();
+            return R.error(BizCodeEnume.NO_STOCK_EXCEPTION.getCode(),BizCodeEnume.NO_STOCK_EXCEPTION.getMsg());
+        }
+    }
+
 
     /**
      * 查询sku是否有库存

@@ -30,11 +30,15 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+#    alibaba:
+#      seata:
+#        tx-service-group:
   session:
     store-type: redis
   redis:
     host: 192.168.2.110
     port: 6379
+
 
 
 

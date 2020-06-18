@@ -81,9 +81,13 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
     }
 
     /**
-     * //TODO 失败回滚策略 等待完善
+     * //TODO 失败回滚策略
+     * //Seata AT模式 分布式事务 适用于并发不高的场景
+     * @GlobalTransactional
+     *
      * @param vo
      */
+    //@GlobalTransactional
     @Transactional
     @Override
     public void saveSpuInfo(SpuSaveVo vo) {
@@ -168,6 +172,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                 }).collect(Collectors.toList());
 
                 skuImagesService.saveBatch(imagesEntities);
+                //TODO　没有图片路径的无需保存
 
                 //6.3 sku销售属性信息  pms_sku_sale_attr_value
                 List<Attr> attr = sku.getAttr();
