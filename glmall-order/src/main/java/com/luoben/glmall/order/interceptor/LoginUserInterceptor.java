@@ -3,6 +3,7 @@ package com.luoben.glmall.order.interceptor;
 import com.luoben.common.constant.AuthServerConstant;
 import com.luoben.common.vo.MemberResponseVO;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,15 @@ public class LoginUserInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+
+        String uri  = request.getRequestURI();
+        AntPathMatcher antPathMatcher = new AntPathMatcher();
+        boolean statusMatch = antPathMatcher.match("/order/order/status/**", uri);
+        boolean payedMatch = antPathMatcher.match("/payed/notify", uri);
+
+        if(statusMatch || payedMatch){
+            return true;
+        }
 
         MemberResponseVO attribute = (MemberResponseVO)request.getSession().getAttribute(AuthServerConstant.LOGIN_USER);
         if(attribute!=null){

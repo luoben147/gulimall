@@ -58,14 +58,19 @@ public class MyRabbitConfig {
         rabbitTemplate.setConfirmCallback(new RabbitTemplate.ConfirmCallback(){
 
             /**
-             *
+             * 只要消息抵达服务器  ack就为true
              * @param correlationData   当前消息的唯一关联数据（消息唯一id）
              * @param ack    Rabbit是否成功收到消息
              * @param s     失败原因
              */
             @Override
             public void confirm(CorrelationData correlationData, boolean ack, String s) {
-
+                /**
+                 * 1.做好消息确认机制（发送方，消费方【手动ack】）
+                 * 2.每一个发送的消息都在数据库做好日志记录（mq_message表）.定期将失败的消息再次发送
+                 */
+                //服务器收到了
+                //修改消息状态
                 System.out.println("confirm..");
             }
         });
@@ -83,7 +88,7 @@ public class MyRabbitConfig {
              */
             @Override
             public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
-
+                //报错了，修改数据库当前消息的状态 -》错误。
             }
         });
     }

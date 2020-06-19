@@ -15,6 +15,16 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+  rabbitmq:
+    host: 192.168.2.110
+    port: 5672
+    virtual-host: /
+    #手动确认消息处理
+    listener:
+      simple:
+        acknowledge-mode: manual
+
+
 #配置mybatisplus
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml

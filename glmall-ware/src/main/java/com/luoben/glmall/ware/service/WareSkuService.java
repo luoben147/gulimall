@@ -1,6 +1,8 @@
 package com.luoben.glmall.ware.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.luoben.common.to.mq.OrderTo;
+import com.luoben.common.to.mq.StockLockedTo;
 import com.luoben.common.utils.PageUtils;
 import com.luoben.glmall.ware.entity.WareSkuEntity;
 import com.luoben.glmall.ware.vo.SkuHasStockVo;
@@ -35,5 +37,17 @@ public interface WareSkuService extends IService<WareSkuEntity> {
      * @return
      */
     Boolean orderLockStock(WareSkuLockVo lockVo);
+
+    /**
+     * 解锁库存
+     * @param to
+     */
+    void unlockStock(StockLockedTo to);
+
+    /**
+     * 解锁库存
+     * @param orderTo
+     */
+    void unlockStock(OrderTo orderTo);
 }
 
