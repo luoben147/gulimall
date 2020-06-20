@@ -8,6 +8,8 @@ spring:
     password: 123456
     url: jdbc:mysql://192.168.2.110:3306/glmall_oms?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
     driver-class-name: com.mysql.cj.jdbc.Driver
+  mvc:
+    date-format: yyyy-MM-dd HH:mm:ss
   rabbitmq:
     host: 192.168.2.110
     port: 5672
@@ -42,6 +44,7 @@ spring:
 
 
 
+
 #配置mybatisplus
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -56,3 +59,8 @@ glmall:
     core-size: 20
     max-size: 200
     keep-alive-time: 10
+
+#支付宝相关配置
+alipay:
+  app_id: 2016080600181162
+

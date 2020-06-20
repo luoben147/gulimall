@@ -25,7 +25,8 @@ public class OrderCloseListener {
         try {
             //关闭订单
             orderService.closeOrder(entity);
-            //TODO 手动调用收单
+            //TODO 手动调用支付宝收单
+            orderService.alipayTradeClose(entity);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
         } catch (Exception e) {
             channel.basicReject(message.getMessageProperties().getDeliveryTag(),true);

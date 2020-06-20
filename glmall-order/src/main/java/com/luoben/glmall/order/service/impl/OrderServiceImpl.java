@@ -1,6 +1,13 @@
 package com.luoben.glmall.order.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
+import com.alipay.api.AlipayApiException;
+import com.alipay.api.AlipayClient;
+import com.alipay.api.DefaultAlipayClient;
+import com.alipay.api.request.AlipayTradeCloseRequest;
+import com.alipay.api.request.AlipayTradeQueryRequest;
+import com.alipay.api.response.AlipayTradeCloseResponse;
+import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -11,10 +18,12 @@ import com.luoben.common.utils.PageUtils;
 import com.luoben.common.utils.Query;
 import com.luoben.common.utils.R;
 import com.luoben.common.vo.MemberResponseVO;
+import com.luoben.glmall.order.config.AlipayTemplate;
 import com.luoben.glmall.order.constant.OrderConstant;
 import com.luoben.glmall.order.dao.OrderDao;
 import com.luoben.glmall.order.entity.OrderEntity;
 import com.luoben.glmall.order.entity.OrderItemEntity;
+import com.luoben.glmall.order.entity.PaymentInfoEntity;
 import com.luoben.glmall.order.enume.OrderStatusEnum;
 import com.luoben.glmall.order.feign.CartFeignService;
 import com.luoben.glmall.order.feign.MemberFeignService;
@@ -23,6 +32,7 @@ import com.luoben.glmall.order.feign.WareFeignService;
 import com.luoben.glmall.order.interceptor.LoginUserInterceptor;
 import com.luoben.glmall.order.service.OrderItemService;
 import com.luoben.glmall.order.service.OrderService;
+import com.luoben.glmall.order.service.PaymentInfoService;
 import com.luoben.glmall.order.to.OrderCreateTo;
 import com.luoben.glmall.order.vo.*;
 import org.springframework.amqp.AmqpException;
@@ -56,6 +66,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     @Autowired
     OrderItemService orderItemService;
 
+    @Autowired
+    PaymentInfoService paymentInfoService;
+
     @Resource
     MemberFeignService memberFeignService;
 
@@ -73,6 +86,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    AlipayTemplate alipayTemplate;
 
     @Autowired
     ThreadPoolExecutor executor;
@@ -263,6 +279,167 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             }
         }
     }
+
+    @Override
+    public PayVo getOrderPay(String orderSn) {
+        PayVo payVo = new PayVo();
+
+        OrderEntity order = this.getOrderByOrderSn(orderSn);
+        //订单金额，保留2位小数向上取值
+        BigDecimal bigDecimal = order.getPayAmount().setScale(2, BigDecimal.ROUND_UP);
+        payVo.setTotal_amount(bigDecimal.toString()); //订单金额
+        payVo.setOut_trade_no(orderSn);//订单号
+
+        QueryWrapper<OrderItemEntity> wrapper = new QueryWrapper<>();
+        wrapper.eq("order_sn",orderSn);
+        List<OrderItemEntity> list = orderItemService.list(wrapper);
+        OrderItemEntity itemEntity = list.get(0);
+
+        payVo.setSubject(itemEntity.getSkuName()); //订单的主题
+        payVo.setBody(itemEntity.getSkuAttrsVals());//订单备注
+        return payVo;
+    }
+
+
+    /**
+     * 分页查询当前登录用户的所有订单信息
+     * @param params
+     * @return
+     */
+    @Override
+    public PageUtils queryPageWithItem(Map<String, Object> params) {
+        MemberResponseVO memberResponseVO = LoginUserInterceptor.loginUser.get();
+
+        IPage<OrderEntity> page = this.page(
+                new Query<OrderEntity>().getPage(params),
+                new QueryWrapper<OrderEntity>().eq("member_id",memberResponseVO.getId()).orderByDesc("id")
+        );
+
+        List<OrderEntity> collect = page.getRecords().stream().map(order -> {
+
+            QueryWrapper<OrderItemEntity> wrapper = new QueryWrapper<>();
+            wrapper.eq("order_sn",order.getOrderSn());
+
+            List<OrderItemEntity> itemEntities = orderItemService.list(wrapper);
+            order.setItemEntities(itemEntities);
+            return order;
+        }).collect(Collectors.toList());
+
+        page.setRecords(collect);
+
+        return new PageUtils(page);
+    }
+
+    /**
+     * 处理支付宝异步通知结果
+     * @param vo
+     * @return
+     */
+    @Override
+    public String handPayResult(PayAsyncVo vo) {
+
+        //1.保存交易流水
+        PaymentInfoEntity paymentInfoEntity = new PaymentInfoEntity();
+        paymentInfoEntity.setAlipayTradeNo(vo.getTrade_no());
+        paymentInfoEntity.setOrderSn(vo.getOut_trade_no());
+        paymentInfoEntity.setPaymentStatus(vo.getTrade_status());
+        paymentInfoEntity.setCallbackTime(vo.getNotify_time());
+
+        paymentInfoService.save(paymentInfoEntity);
+
+        //2.修改订单状态信息
+        if(vo.getTrade_status().equals("TRADE_SUCCESS")||vo.getTrade_status().equals("TRADE_FINISHED")){
+            //支付成功
+            String outTradeNo = vo.getOut_trade_no();
+            baseMapper.updateOrderStatus(outTradeNo,OrderStatusEnum.PAYED.getCode());
+        }
+
+        return "success";
+    }
+
+    /**
+     * 支付宝关闭支付订单
+     * @param entity
+     */
+    @Override
+    public void alipayTradeClose(OrderEntity entity) {
+
+        //获得初始化的AlipayClient
+        AlipayClient alipayClient = new DefaultAlipayClient(alipayTemplate.getGatewayUrl(), alipayTemplate.getApp_id(), alipayTemplate.getMerchant_private_key(), "json", alipayTemplate.getCharset(), alipayTemplate.getAlipay_public_key(), alipayTemplate.getSign_type());
+
+        //设置请求参数
+        AlipayTradeCloseRequest alipayRequest = new AlipayTradeCloseRequest();
+
+        //商户订单号，商户网站订单系统中唯一订单号
+        String orderSn = entity.getOrderSn();
+        System.out.println("关单订单号："+orderSn);
+        //支付宝交易号
+        //String trade_no = new String(request.getParameter("WIDTCtrade_no").getBytes("ISO-8859-1"),"UTF-8");
+        //请二选一设置
+
+        //alipayRequest.setBizContent("{\"out_trade_no\":\""+ orderSn +"\"," +"\"trade_no\":\""+ trade_no +"\"}");
+        alipayRequest.setBizContent("{\"out_trade_no\":\""+ orderSn+"\"}");
+
+        //请求
+        try {
+            AlipayTradeCloseResponse response = alipayClient.execute(alipayRequest);
+            if(response.isSuccess()){
+                System.out.println("调用关单成功");
+            } else {
+                System.out.println("调用关单失败");
+
+            }
+            String body = response.getBody();
+            System.out.println("关单结果："+body);
+        } catch (AlipayApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Override
+    public String queryPayStatus(String orderSn) {
+
+        //获得初始化的AlipayClient
+        AlipayClient alipayClient = new DefaultAlipayClient(alipayTemplate.getGatewayUrl(), alipayTemplate.getApp_id(), alipayTemplate.getMerchant_private_key(), "json", alipayTemplate.getCharset(), alipayTemplate.getAlipay_public_key(), alipayTemplate.getSign_type());
+        //设置请求参数
+        AlipayTradeQueryRequest alipayRequest = new AlipayTradeQueryRequest();
+        //商户订单号，商户网站订单系统中唯一订单号
+        //String out_trade_no = new String(request.getParameter("WIDTQout_trade_no").getBytes("ISO-8859-1"),"UTF-8");
+        //支付宝交易号
+        //String trade_no = new String(request.getParameter("WIDTQtrade_no").getBytes("ISO-8859-1"),"UTF-8");
+        //请二选一设置
+
+        alipayRequest.setBizContent("{\"out_trade_no\":\""+ orderSn +"\"}");
+        //请求
+        try {
+            AlipayTradeQueryResponse response = alipayClient.execute(alipayRequest);
+            if(response.isSuccess()){
+                switch (response.getTradeStatus()) // 判断交易结果
+                {
+                    case "TRADE_FINISHED": // 交易结束并不可退款
+                        break;
+                    case "TRADE_SUCCESS": // 交易支付成功
+                        break;
+                    case "TRADE_CLOSED": // 未付款交易超时关闭或支付完成后全额退款
+                        break;
+                    case "WAIT_BUYER_PAY": // 交易创建并等待买家付款
+                        break;
+                    default:
+                        break;
+                }
+                System.out.println("查询支付宝支付状态结果："+response.getTradeStatus());
+                return response.getTradeStatus();
+            }else {
+                System.out.println("==================调用支付宝查询接口失败！");
+                return null;
+            }
+        } catch (AlipayApiException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     /**
      * 保存订单数据

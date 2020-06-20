@@ -77,6 +77,11 @@ spring:
          predicates:
            - Host=order.glmall.com
 
+       - id: glmall_member_route
+         uri: lb://glmall-member
+         predicates:
+           - Host=member.glmall.com
+
 ## 前端项目，/api
 ## http://localhost:88/api/captcha.jpg   http://localhost:8080/renren-fast/captcha.jpg
 ## http://localhost:88/api/product/category/list/tree http://localhost:10000/product/category/list/tree
