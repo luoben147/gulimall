@@ -1,6 +1,7 @@
 package com.luoben.glmall.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.luoben.common.to.mq.SeckillOrderTo;
 import com.luoben.common.utils.PageUtils;
 import com.luoben.glmall.order.entity.OrderEntity;
 import com.luoben.glmall.order.vo.*;
@@ -77,5 +78,11 @@ public interface OrderService extends IService<OrderEntity> {
      * @return
      */
     String queryPayStatus(String orderSn);
+
+    /**
+     * 创建秒杀订单
+     * @param seckillOrderTo
+     */
+    void createSeckillOrder(SeckillOrderTo seckillOrderTo);
 }
 

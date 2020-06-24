@@ -23,6 +23,13 @@ spring:
            #重写路径 此工厂将/api/(?.*)重写为{segment}  去掉/api
            - RewritePath=/api/(?<segment>/?.*),/$\{segment}
 
+       - id: coupon_route
+         uri: lb://glmall-coupon
+         predicates:
+           - Path=/api/coupon/**
+         filters:
+           - RewritePath=/api/(?<segment>/?.*),/$\{segment}
+
        - id: third_party_route
          uri: lb://glmall-third-party
          predicates:
@@ -81,6 +88,11 @@ spring:
          uri: lb://glmall-member
          predicates:
            - Host=member.glmall.com
+
+       - id: glmall_seckill_route
+         uri: lb://glmall-seckill
+         predicates:
+           - Host=seckill.glmall.com
 
 ## 前端项目，/api
 ## http://localhost:88/api/captcha.jpg   http://localhost:8080/renren-fast/captcha.jpg

@@ -523,10 +523,17 @@
                             <span>￥</span>
                             <span th:text="${#numbers.formatDecimal(item.info.price,3,2)}">4499.00</span>
                         </li>
-                        <li>
-                            预约享资格
+                        <li style="color: red" th:if="${item.seckillInfo!=null}">
+                            <span th:if="${#dates.createNow().getTime()<item.seckillInfo.startTime}">
+                                商品将会在[[${#dates.format(new java.util.Date(item.seckillInfo.startTime),"yyyy-MM-dd HH:mm:ss")}]]进行秒杀
+                            </span>
+
+                            <span th:if="${#dates.createNow().getTime()>=item.seckillInfo.startTime && #dates.createNow().getTime()<=item.seckillInfo.endTime}">
+                               秒杀价：[[${#numbers.formatDecimal(item.seckillInfo.seckillPrice,1,2)}]]
+                            </span>
+
                         </li>
-                        <li>
+                        <li >
                             <a href="/static/item/">
                                 预约说明
                             </a>
@@ -647,7 +654,13 @@
 
                         </div>
                     </div>
-                    <div class="box-btns-two">
+                    <div class="box-btns-two" th:if="${item.seckillInfo!=null &&(#dates.createNow().getTime()>=item.seckillInfo.startTime && #dates.createNow().getTime()<=item.seckillInfo.endTime)}">
+                        <!--skuId,秒杀场次id,令牌-->
+                        <a href="#" id="secKillA" th:attr="skuId=${item.info.skuId},seckill_session_id=${item.seckillInfo.promotionSessionId},code=${item.seckillInfo.randomCode}" >
+                            立即抢购
+                        </a>
+                    </div>
+                    <div class="box-btns-two" th:if="${item.seckillInfo==null||(#dates.createNow().getTime()<item.seckillInfo.startTime || #dates.createNow().getTime()>item.seckillInfo.endTime)}">
                         <a href="#" id="addToCartA" th:attr="skuId=${item.info.skuId}">
                             加入购物车
                         </a>
@@ -1351,6 +1364,17 @@
         location.href = "http://cart.glmall.com/addToCart?skuId="+skuId+"&num=" + num;
         return false;
     });
-
+    $("#secKillA").click(function () {
+        var isLogin=[[${session.loginUser!=null}]];
+        if(isLogin){
+            var killId= $(this).attr("seckill_session_id")+"_"+$(this).attr("skuId");
+            var key=$(this).attr("code");
+            var num=$("#numInput").val();
+            location.href="http://seckill.glmall.com/kill?killId="+killId+"&key="+key+"&num="+num;
+        }else {
+            alert("请先登录");
+        }
+        return false;
+    })
 </script>
 </html>

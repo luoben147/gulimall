@@ -1,19 +1,15 @@
 package com.luoben.glmall.coupon.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.luoben.glmall.coupon.entity.SeckillSessionEntity;
-import com.luoben.glmall.coupon.service.SeckillSessionService;
 import com.luoben.common.utils.PageUtils;
 import com.luoben.common.utils.R;
+import com.luoben.glmall.coupon.entity.SeckillSessionEntity;
+import com.luoben.glmall.coupon.service.SeckillSessionService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -29,6 +25,16 @@ import com.luoben.common.utils.R;
 public class SeckillSessionController {
     @Autowired
     private SeckillSessionService seckillSessionService;
+
+    /**
+     * 获取最近三天的秒杀活动
+     * @return
+     */
+    @GetMapping("/lates3DaySession")
+    public R getLates3DaySession(){
+       List<SeckillSessionEntity> entities= seckillSessionService.getLates3DaySession();
+       return R.ok().setData(entities);
+    }
 
     /**
      * 列表

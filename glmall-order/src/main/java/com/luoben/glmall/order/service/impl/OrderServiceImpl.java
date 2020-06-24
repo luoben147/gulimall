@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.luoben.common.exception.NoStockException;
 import com.luoben.common.to.mq.OrderTo;
+import com.luoben.common.to.mq.SeckillOrderTo;
 import com.luoben.common.utils.PageUtils;
 import com.luoben.common.utils.Query;
 import com.luoben.common.utils.R;
@@ -438,6 +439,32 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * 创建秒杀订单
+     * @param seckillOrderTo
+     */
+    @Override
+    public void createSeckillOrder(SeckillOrderTo seckillOrderTo) {
+        //TODO 保存秒杀订单
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setOrderSn(seckillOrderTo.getOrderSn());
+        orderEntity.setMemberId(seckillOrderTo.getMemberId());
+        orderEntity.setStatus(OrderStatusEnum.CREATE_NEW.getCode());
+        BigDecimal multiply = seckillOrderTo.getSeckillPrice().multiply(new BigDecimal("" + seckillOrderTo.getNum()));
+        orderEntity.setPayAmount(multiply);
+        this.save(orderEntity);
+
+        //保存订单项信息
+        OrderItemEntity orderItemEntity = new OrderItemEntity();
+        orderItemEntity.setOrderSn(seckillOrderTo.getOrderSn());
+        orderItemEntity.setRealAmount(multiply);
+        orderItemEntity.setSkuQuantity(seckillOrderTo.getNum());
+        //TODO 获取当前sku的详细信息进行设置          productFeignService。getSpuInfoBySkuId()
+        orderItemService.save(orderItemEntity);
+
+
     }
 
 
