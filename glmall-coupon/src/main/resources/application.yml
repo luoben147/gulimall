@@ -1,21 +1,47 @@
-#server:
-#  port: 7000
-#spring:
-#  application:
-#    name: glmall-coupon
-#  datasource:
-#    username: root
-#    password: 123456
-#    url: jdbc:mysql://192.168.81.109:3306/glmall_sms?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#  cloud:
-#    nacos:
-#      discovery:
-#        server-addr: 127.0.0.1:8848
-##配置mybatisplus
-#mybatis-plus:
-#  mapper-locations: classpath*:/mapper/**/*.xml
-#  global-config:
-#    db-config:
-#      #主键类型 AUTO:"数据库ID自增", INPUT:"用户输入ID",ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
-#      id-type: auto
+server:
+  port: 7000
+spring:
+  application:
+    name: glmall-coupon
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://192.168.81.109:3306/glmall_sms?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: localhost:8080
+
+  #服务追踪
+  zipkin:
+    base-url: http://192.168.2.110:9411/  #zipkin服务器地址
+     #关闭服务发现，否则Spring Cloud 会把zipkin的url当做服务名称
+    discovery-client-enabled: false
+    sender:
+      type: web   #设置使用http的方式传输数据
+  sleuth:
+    sampler:
+      probability: 1  #设置抽样采集率为100%。 默认为0.1，即10%
+
+#配置mybatisplus
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  global-config:
+    db-config:
+      #主键类型 AUTO:"数据库ID自增", INPUT:"用户输入ID",ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
+      id-type: auto
+
+feign:
+  sentinel:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

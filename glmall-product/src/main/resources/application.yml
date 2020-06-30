@@ -10,6 +10,10 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: localhost:8080
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
@@ -33,6 +37,17 @@ spring:
   session:
     store-type: redis
 
+  #服务追踪
+  zipkin:
+    base-url: http://192.168.2.110:9411/  #zipkin服务器地址
+    #关闭服务发现，否则Spring Cloud 会把zipkin的url当做服务名称
+    discovery-client-enabled: false
+    sender:
+      type: web   #设置使用http的方式传输数据
+  sleuth:
+    sampler:
+      probability: 1  #设置抽样采集率为100%。 默认为0.1，即10%
+
 #配置mybatisplus
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -43,9 +58,24 @@ mybatis-plus:
       #全局逻辑删除规则
       logic-delete-value: 1     # 逻辑已删除值(默认为 1)
       logic-not-delete-value: 0  # 逻辑未删除值(默认为 0)
+
+
+feign:
+  sentinel:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+
 logging:
   level:
-    com.luoben.glmall: debug
+    com.luoben.glmall: info
+    org.springframework.cloud.openfeign: debug
+    org.springframework.cloud.sleuth: debug
 
 #线程池自定义配置
 glmall:
@@ -53,5 +83,6 @@ glmall:
     core-size: 20
     max-size: 200
     keep-alive-time: 10
+
 
 

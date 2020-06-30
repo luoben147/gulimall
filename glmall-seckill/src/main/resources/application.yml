@@ -7,6 +7,10 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: localhost:8080
   rabbitmq:
     host: 192.168.2.110
     port: 5672
@@ -17,3 +21,30 @@ spring:
     store-type: redis
   thymeleaf:
     cache: false
+  #服务追踪
+  zipkin:
+    base-url: http://192.168.2.110:9411/  #zipkin服务器地址
+    #关闭服务发现，否则Spring Cloud 会把zipkin的url当做服务名称
+    discovery-client-enabled: false
+    sender:
+      type: web   #设置使用http的方式传输数据
+  sleuth:
+    sampler:
+      probability: 1  #设置抽样采集率为100%。 默认为0.1，即10%
+
+feign:
+  sentinel:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+
+logging:
+  level:
+    org.springframework.cloud.openfeign: debug
+    org.springframework.cloud.sleuth: debug
+
